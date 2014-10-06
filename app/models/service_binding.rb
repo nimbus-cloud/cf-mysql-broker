@@ -120,17 +120,38 @@ class ServiceBinding < BaseModel
   end
 
   def to_json(*)
-    {
-      'credentials' => {
-        'hostname' => host,
-        'port' => port,
-        'name' => database_name,
-        'username' => username,
-        'password' => password,
-        'uri' => uri,
-        'jdbcUrl' => jdbc_url
+    
+    credentials_hash={}
+    
+    if Settings.get('datacentre_info')
+      credentials_hash['credentials'] = {}
+      Settings.datacentre_info.each do |item|
+        credentials_hash['credentials'][item.name] = {
+          'host' => item.host,
+          'hostname' => item.host,
+          'port' => item.port,
+          'name' => database_name,
+          'username' => username,
+          'password' => password,
+          'uri' => "mysql://#{username}:#{password}@#{item.host}:#{item.port}/#{database_name}?reconnect=true",
+          'jdbcUrl' => "jdbc:mysql://#{username}:#{password}@#{item.host}:#{item.port}/#{database_name}"
+        }
+      end
+    else
+      credentials_hash = {
+        'credentials' => {
+          'host' => host,
+          'hostname' => host,
+          'port' => port,
+          'name' => database_name,
+          'username' => username,
+          'password' => password,
+          'uri' => uri,
+          'jdbcUrl' => jdbc_url
+        }
       }
-    }.to_json
+    end
+    credentials_hash.to_json
   end
 
   private

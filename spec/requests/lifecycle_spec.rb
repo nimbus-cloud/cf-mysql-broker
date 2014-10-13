@@ -62,6 +62,7 @@ describe 'the service lifecycle' do
 
     expect(instance.fetch('credentials')).to eq({
       'hostname' => 'localhost',
+      'host' => 'localhost',
       'name' => dbname,
       'username' => username,
       'password' => password,

@@ -123,7 +123,7 @@ class ServiceBinding < BaseModel
     
     credentials_hash={}
     
-    if Settings.get('datacentre_info')
+    if Settings.to_hash.has_key?('datacentre_info')
       credentials_hash['credentials'] = {}
       Settings.datacentre_info.each do |item|
         credentials_hash['credentials'][item.name] = {

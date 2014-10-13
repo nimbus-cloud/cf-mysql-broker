@@ -50,6 +50,7 @@ describe V2::ServiceBindingsController do
       binding = JSON.parse(response.body)
       expect(binding['credentials']).to eq(
         'hostname' => database_host,
+        'host' => database_host,
         'name' => generated_dbname,
         'username' => generated_username,
         'password' => generated_password,

@@ -8,7 +8,7 @@ describe V2::ServiceBindingsController do
   let(:database_port) { db_settings.fetch('port') }
 
   let(:instance_guid) { 'instance-1' }
-  let(:instance) { ServiceInstance.new(guid: instance_guid, db_name: database) }
+  let(:instance) { ServiceInstance.new(guid: instance_guid, db_name: database, service_username: 'user', service_password: 'pass') }
   let(:database) { ServiceInstanceManager.database_name_from_service_instance_guid(instance_guid) }
 
   before do
@@ -54,6 +54,8 @@ describe V2::ServiceBindingsController do
         'name' => generated_dbname,
         'username' => generated_username,
         'password' => generated_password,
+        'service_username' => 'user',
+        'service_password' => 'pass',
         'port' => database_port,
         'jdbcUrl' => "jdbc:mysql://#{generated_username}:#{generated_password}@#{database_host}:#{database_port}/#{generated_dbname}",
         'uri' => "mysql://#{generated_username}:#{generated_password}@#{database_host}:#{database_port}/#{generated_dbname}?reconnect=true",

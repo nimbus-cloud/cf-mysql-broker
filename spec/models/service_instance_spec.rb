@@ -27,6 +27,9 @@ describe ServiceInstance do
       ServiceInstanceManager.create(guid: instance_guid_2, plan_guid: plan_guid_2)
 
       expect(ServiceInstance.reserved_space_in_mb).to eq 12
+      
+      ServiceInstanceManager.destroy(guid: instance_guid_1)
+      ServiceInstanceManager.destroy(guid: instance_guid_2)
     end
   end
 end

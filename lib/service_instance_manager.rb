@@ -19,15 +19,22 @@ class ServiceInstanceManager
     end
 
     db_name = database_name_from_service_instance_guid(guid)
+    
+    service_username = SecureRandom.base64(20).gsub(/[^a-zA-Z0-9]+/, '')[0...16]
+    service_password = SecureRandom.base64(20).gsub(/[^a-zA-Z0-9]+/, '')[0...16]
 
     Database.create(db_name)
-    ServiceInstance.create(guid: guid, plan_guid: plan_guid, max_storage_mb: max_storage_mb, db_name: db_name)
+    Database.add_user(service_username, service_password, db_name, plan_guid)
+    
+    ServiceInstance.create(guid: guid, plan_guid: plan_guid, max_storage_mb: max_storage_mb, db_name: db_name, service_username: service_username, service_password: service_password)
   end
 
   def self.destroy(opts)
     guid = opts[:guid]
     instance = ServiceInstance.find_by_guid(guid)
     raise ServiceInstanceNotFound if instance.nil?
+    
+    Database.remove_user(instance.service_username)
     instance.destroy
     Database.drop(database_name_from_service_instance_guid(guid))
   end

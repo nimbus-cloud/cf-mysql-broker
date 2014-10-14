@@ -133,6 +133,8 @@ class ServiceBinding < BaseModel
           'name' => database_name,
           'username' => username,
           'password' => password,
+          'service_username' => service_instance.service_username,
+          'service_password' => service_instance.service_password,
           'uri' => "mysql://#{username}:#{password}@#{item.host}:#{item.port}/#{database_name}?reconnect=true",
           'jdbcUrl' => "jdbc:mysql://#{username}:#{password}@#{item.host}:#{item.port}/#{database_name}"
         }
@@ -146,6 +148,8 @@ class ServiceBinding < BaseModel
           'name' => database_name,
           'username' => username,
           'password' => password,
+          'service_username' => service_instance.service_username,
+          'service_password' => service_instance.service_password,
           'uri' => uri,
           'jdbcUrl' => jdbc_url
         }

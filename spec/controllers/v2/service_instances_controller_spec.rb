@@ -3,7 +3,10 @@ require 'spec_helper'
 describe V2::ServiceInstancesController do
   let(:instance_id) { '88f6fa22-c8b7-4cdc-be3a-dc09ea7734db' }
 
-  before { authenticate }
+  before do 
+    authenticate
+    SecureRandom.stub(:base64).and_return("randomname")
+  end
 
   # this is actually the create
   describe '#update' do
@@ -131,7 +134,7 @@ describe V2::ServiceInstancesController do
 
     context 'when the service instance exists' do
       before do
-        ServiceInstance.create(guid: instance_id, plan_guid: 'some-plan-guid')
+        ServiceInstance.create(guid: instance_id, plan_guid: 'some-plan-guid', service_username: "randomname", service_password: "randomname")
       end
 
       it 'returns a 200' do

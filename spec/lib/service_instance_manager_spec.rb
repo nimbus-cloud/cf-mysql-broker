@@ -11,6 +11,7 @@ describe ServiceInstanceManager do
     Catalog.stub(:has_plan?).with(plan_id).and_return(true)
     Catalog.stub(:has_plan?).with(non_existent_plan_id).and_return(false)
     Catalog.stub(:storage_quota_for_plan_guid).with(plan_id).and_return(max_storage_mb)
+    SecureRandom.stub(:base64).and_return("randomname")
   end
 
   describe '.database_name_from_service_instance_guid' do
@@ -22,6 +23,7 @@ describe ServiceInstanceManager do
   describe '.create' do
     after {
       Database.drop(database_name)
+      Database.remove_user("randomname")
     }
 
     it 'saves a ServiceInstance in the broker database' do

@@ -33,7 +33,7 @@ describe 'the service lifecycle' do
   let(:username) { ServiceBinding.new(id: binding_id).username }
 
   before do
-    SecureRandom.stub(:base64).and_return(password, 'notthepassword')
+    SecureRandom.stub(:base64).and_return(password)
     cleanup_mysql_user(username)
     cleanup_mysql_database(dbname)
   end
@@ -66,6 +66,8 @@ describe 'the service lifecycle' do
       'name' => dbname,
       'username' => username,
       'password' => password,
+      'service_username' => 'somepassword',
+      'service_password' => 'somepassword',
       'port' => 3306,
       'jdbcUrl' => "jdbc:mysql://#{username}:#{password}@localhost:3306/#{dbname}",
       'uri' => "mysql://#{username}:#{password}@localhost:3306/#{dbname}?reconnect=true",

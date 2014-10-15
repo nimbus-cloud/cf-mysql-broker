@@ -11,7 +11,9 @@ describe ServiceBinding do
   let(:instance) { ServiceInstance.new(
       guid: instance_guid,
       plan_guid: plan_guid,
-      db_name: database)
+      db_name: database,
+      service_username: 'random',
+      service_password: 'random')
   }
   let(:database) { ServiceInstanceManager.database_name_from_service_instance_guid(instance_guid) }
   let(:connection_quota) { 12 }
@@ -223,8 +225,8 @@ describe ServiceBinding do
       expect(credentials.fetch('hostname')).to eq(host)
       expect(credentials.fetch('port')).to eq(port)
       expect(credentials.fetch('name')).to eq(database)
-      expect(credentials.fetch('username')).to eq(username)
-      expect(credentials.fetch('password')).to eq(password)
+      expect(credentials.fetch('username')).to eq('random')
+      expect(credentials.fetch('password')).to eq('random')
       expect(credentials.fetch('uri')).to eq(uri)
       expect(credentials.fetch('jdbcUrl')).to eq(jdbc_url)
     end

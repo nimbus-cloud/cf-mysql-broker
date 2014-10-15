@@ -123,6 +123,14 @@ class ServiceBinding < BaseModel
     
     credentials_hash={}
     
+    user=username
+    pass=password
+    
+    if service_instance.service_username
+      user=service_instance.service_username
+      pass=service_instance.service_password
+    end
+      
     if Settings.to_hash.has_key?('datacentre_info')
       credentials_hash['credentials'] = {}
       Settings.datacentre_info.each do |item|
@@ -131,10 +139,8 @@ class ServiceBinding < BaseModel
           'hostname' => item.host,
           'port' => item.port,
           'name' => database_name,
-          'username' => username,
-          'password' => password,
-          'service_username' => service_instance.service_username,
-          'service_password' => service_instance.service_password,
+          'username' => service_instance.service_username,
+          'password' => service_instance.service_password,
           'uri' => "mysql://#{username}:#{password}@#{item.host}:#{item.port}/#{database_name}?reconnect=true",
           'jdbcUrl' => "jdbc:mysql://#{username}:#{password}@#{item.host}:#{item.port}/#{database_name}"
         }
@@ -146,10 +152,8 @@ class ServiceBinding < BaseModel
           'hostname' => host,
           'port' => port,
           'name' => database_name,
-          'username' => username,
-          'password' => password,
-          'service_username' => service_instance.service_username,
-          'service_password' => service_instance.service_password,
+          'username' => service_instance.service_username,
+          'password' => service_instance.service_password,
           'uri' => uri,
           'jdbcUrl' => jdbc_url
         }

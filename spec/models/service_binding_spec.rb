@@ -214,8 +214,8 @@ describe ServiceBinding do
     let(:connection_config) { Rails.configuration.database_configuration[Rails.env] }
     let(:host) { connection_config.fetch('host') }
     let(:port) { connection_config.fetch('port') }
-    let(:uri) { "mysql://#{username}:#{password}@#{host}:#{port}/#{database}?reconnect=true" }
-    let(:jdbc_url) { "jdbc:mysql://#{username}:#{password}@#{host}:#{port}/#{database}" }
+    let(:uri) { "mysql://random:random@#{host}:#{port}/#{database}?reconnect=true" }
+    let(:jdbc_url) { "jdbc:mysql://random:random@#{host}:#{port}/#{database}" }
 
     before { binding.save }
 

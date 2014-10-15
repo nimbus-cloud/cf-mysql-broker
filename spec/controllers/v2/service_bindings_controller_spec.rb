@@ -55,8 +55,8 @@ describe V2::ServiceBindingsController do
         'username' => 'user',
         'password' => 'pass',
         'port' => database_port,
-        'jdbcUrl' => "jdbc:mysql://#{generated_username}:#{generated_password}@#{database_host}:#{database_port}/#{generated_dbname}",
-        'uri' => "mysql://#{generated_username}:#{generated_password}@#{database_host}:#{database_port}/#{generated_dbname}?reconnect=true",
+        'jdbcUrl' => "jdbc:mysql://user:pass@#{database_host}:#{database_port}/#{generated_dbname}",
+        'uri' => "mysql://user:pass@#{database_host}:#{database_port}/#{generated_dbname}?reconnect=true"
       )
     end
 

@@ -67,8 +67,8 @@ describe 'the service lifecycle' do
       'username' => 'somepassword',
       'password' => 'somepassword',
       'port' => 3306,
-      'jdbcUrl' => "jdbc:mysql://#{username}:#{password}@localhost:3306/#{dbname}",
-      'uri' => "mysql://#{username}:#{password}@localhost:3306/#{dbname}?reconnect=true",
+      'jdbcUrl' => "jdbc:mysql://somepassword:somepassword@localhost:3306/#{dbname}",
+      'uri' => "mysql://somepassword:somepassword@localhost:3306/#{dbname}?reconnect=true",
     })
 
     ##

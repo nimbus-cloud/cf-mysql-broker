@@ -141,8 +141,8 @@ class ServiceBinding < BaseModel
           'name' => database_name,
           'username' => user,
           'password' => pass,
-          'uri' => "mysql://#{username}:#{password}@#{item.host}:#{item.port}/#{database_name}?reconnect=true",
-          'jdbcUrl' => "jdbc:mysql://#{username}:#{password}@#{item.host}:#{item.port}/#{database_name}"
+          'uri' => "mysql://#{user}:#{pass}@#{item.host}:#{item.port}/#{database_name}?reconnect=true",
+          'jdbcUrl' => "jdbc:mysql://#{user}:#{pass}@#{item.host}:#{item.port}/#{database_name}"
         }
       end
     else
@@ -154,8 +154,8 @@ class ServiceBinding < BaseModel
           'name' => database_name,
           'username' => user,
           'password' => pass,
-          'uri' => uri,
-          'jdbcUrl' => jdbc_url
+          'uri' => "mysql://#{user}:#{pass}@#{host}:#{port}/#{database_name}?reconnect=true",
+          'jdbcUrl' => "jdbc:mysql://#{user}:#{pass}@#{host}:#{port}/#{database_name}"
         }
       }
     end
@@ -166,13 +166,5 @@ class ServiceBinding < BaseModel
 
   def connection_config
     Rails.configuration.database_configuration[Rails.env]
-  end
-
-  def uri
-    "mysql://#{username}:#{password}@#{host}:#{port}/#{database_name}?reconnect=true"
-  end
-
-  def jdbc_url
-    "jdbc:mysql://#{username}:#{password}@#{host}:#{port}/#{database_name}"
   end
 end

@@ -126,7 +126,7 @@ class ServiceBinding < BaseModel
     user=username
     pass=password
     
-    if service_instance.service_username
+    if service_instance.service_username!=nil
       user=service_instance.service_username
       pass=service_instance.service_password
     end
@@ -139,8 +139,8 @@ class ServiceBinding < BaseModel
           'hostname' => item.host,
           'port' => item.port,
           'name' => database_name,
-          'username' => service_instance.service_username,
-          'password' => service_instance.service_password,
+          'username' => user,
+          'password' => pass,
           'uri' => "mysql://#{username}:#{password}@#{item.host}:#{item.port}/#{database_name}?reconnect=true",
           'jdbcUrl' => "jdbc:mysql://#{username}:#{password}@#{item.host}:#{item.port}/#{database_name}"
         }
@@ -152,8 +152,8 @@ class ServiceBinding < BaseModel
           'hostname' => host,
           'port' => port,
           'name' => database_name,
-          'username' => service_instance.service_username,
-          'password' => service_instance.service_password,
+          'username' => user,
+          'password' => pass,
           'uri' => uri,
           'jdbcUrl' => jdbc_url
         }

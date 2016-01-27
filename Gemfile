@@ -1,26 +1,25 @@
 source 'https://rubygems.org'
 
-gem 'rails'
+ruby '2.2.3'
+
+gem 'rails', '4.0.13'
 gem 'rails-api'
 gem 'settingslogic'
 gem 'mysql2'
 gem 'omniauth-uaa-oauth2', github: 'cloudfoundry/omniauth-uaa-oauth2'
-gem 'cf-registrar', git: 'https://github.com/cloudfoundry/cf-registrar'
 gem 'nats'
 gem 'sass-rails'
+gem 'eventmachine', '~> 1.0.7'
 
 group :production do
   gem 'unicorn'
 end
 
 group :development, :test do
-  gem 'rspec-rails'
+  gem 'test-unit'
+  gem 'rspec-rails', '2.14.2'
   gem 'database_cleaner'
-end
-
-group :development do
-  gem 'guard-rails'
-  gem 'roodi'
+  gem 'brakeman'
 end
 
 group :test do

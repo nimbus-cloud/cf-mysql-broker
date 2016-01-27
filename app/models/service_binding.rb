@@ -142,7 +142,8 @@ class ServiceBinding < BaseModel
           'username' => user,
           'password' => pass,
           'uri' => "mysql://#{user}:#{pass}@#{item.host}:#{item.port}/#{database_name}?reconnect=true",
-          'jdbcUrl' => "jdbc:mysql://#{user}:#{pass}@#{item.host}:#{item.port}/#{database_name}"
+          # 'jdbcUrl' => "jdbc:mysql://#{user}:#{pass}@#{item.host}:#{item.port}/#{database_name}"
+          'jdbcUrl' => "jdbc:mysql://#{item.host}:#{item.port}/#{database_name}?user=#{user}&password=#{pass}"
         }
       end
     else
@@ -155,16 +156,55 @@ class ServiceBinding < BaseModel
           'username' => user,
           'password' => pass,
           'uri' => "mysql://#{user}:#{pass}@#{host}:#{port}/#{database_name}?reconnect=true",
-          'jdbcUrl' => "jdbc:mysql://#{user}:#{pass}@#{host}:#{port}/#{database_name}"
+          # 'jdbcUrl' => "jdbc:mysql://#{user}:#{pass}@#{host}:#{port}/#{database_name}"
+          'jdbcUrl' => "jdbc:mysql://#{host}:#{port}/#{database_name}?user=#{user}&password=#{pass}"
         }
       }
     end
     credentials_hash.to_json
   end
 
+  def self.update_all_max_user_connections
+    # We would like to update these users in bulk by updating mysql.user
+    # directly, but Galera does not replicate this table. DDL statments such
+    # as GRANT USAGE must be used instead to ensure replication.
+    Catalog.plans.each do |plan|
+      users = connection.select_values(get_all_users_with_plan(plan))
+      users.each do |user|
+        connection.execute(update_max_user_connection_for_user(user, plan))
+      end
+    end
+    connection.execute('FLUSH PRIVILEGES')
+  end
+
   private
+
+  def self.update_max_user_connection_for_user(user, plan)
+<<-SQL
+GRANT USAGE ON *.* TO '#{user}'@'%'
+WITH MAX_USER_CONNECTIONS #{plan.max_user_connections}
+SQL
+  end
+
+  def self.get_all_users_with_plan(plan)
+<<-SQL
+SELECT mysql.user.user
+FROM service_instances
+JOIN mysql.db ON service_instances.db_name=mysql.db.Db
+JOIN mysql.user ON mysql.user.User=mysql.db.User
+WHERE plan_guid='#{plan.id}' AND mysql.user.user NOT LIKE 'root'
+SQL
+  end
 
   def connection_config
     Rails.configuration.database_configuration[Rails.env]
+  end
+
+  def uri
+    "mysql://#{username}:#{password}@#{host}:#{port}/#{database_name}?reconnect=true"
+  end
+
+  def jdbc_url
+    "jdbc:mysql://#{host}:#{port}/#{database_name}?user=#{username}&password=#{password}"
   end
 end

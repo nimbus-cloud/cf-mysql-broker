@@ -64,4 +64,74 @@ describe Database do
       end
     end
   end
+
+  describe '.usage' do
+    let(:mb_string) { 'a' * 1024 * 1024 }
+    before { Database.create(db_name) }
+    after { Database.drop(db_name) }
+
+    it 'returns the data usage of the db in megabytes' do
+      connection.execute("CREATE TABLE #{db_name}.mytable (id MEDIUMINT, data LONGTEXT)")
+      connection.execute("INSERT INTO #{db_name}.mytable (id, data) VALUES (1, '#{mb_string}')")
+      connection.execute("INSERT INTO #{db_name}.mytable (id, data) VALUES (2, '#{mb_string}')")
+      connection.execute("INSERT INTO #{db_name}.mytable (id, data) VALUES (3, '#{mb_string}')")
+      connection.execute("INSERT INTO #{db_name}.mytable (id, data) VALUES (4, '#{mb_string}')")
+
+      expect(Database.usage(db_name)).to eq 4
+    end
+  end
+
+  describe '.with_reconnect' do
+    before do
+      allow(Kernel).to receive(:sleep)
+
+      reconnect_count = 0
+      allow(ActiveRecord::Base.connection).to receive(:reconnect!) do
+        reconnect_count += 1
+        if reconnect_count == 1
+          raise Mysql2::Error.new("fake")
+        else
+          allow(ActiveRecord::Base.connection).to receive(:active?).and_return(true)
+        end
+      end
+
+      @foo = double('bob')
+      allow(@foo).to receive(:bar).and_raise(ActiveRecord::ActiveRecordError)
+    end
+
+    it 'attempts to reconnect every 3 seconds if the connection becomes inactive' do
+      allow(ActiveRecord::Base.connection).to receive(:active?).and_return(false)
+
+      Database.with_reconnect do
+        @foo.bar
+      end
+
+      expect(@foo).to have_received(:bar)
+      expect(ActiveRecord::Base.connection).to have_received(:reconnect!).twice
+      expect(Kernel).to have_received(:sleep).with(3.seconds)
+    end
+
+    it 'stops trying to reconnect eventually, in case there is an unrecoverable error' do
+      allow(ActiveRecord::Base.connection).to receive(:active?).and_return(false)
+      allow(ActiveRecord::Base.connection).to receive(:reconnect!).and_raise(Mysql2::Error.new("fake"))
+
+      expect {
+        Database.with_reconnect do
+          @foo.bar
+        end
+      }.to raise_error(Mysql2::Error)
+    end
+
+    it 'does not reconnect if there was an error but the connection is active' do
+      allow(ActiveRecord::Base.connection).to receive(:active?).and_return(true)
+
+      expect {
+        Database.with_reconnect do
+          @foo.bar
+        end
+      }.to raise_error(ActiveRecord::ActiveRecordError)
+
+      expect(@foo).to have_received(:bar)
+    end
+  end
 end

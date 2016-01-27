@@ -25,7 +25,13 @@ describe V2::ServiceInstancesController do
                       'name' => 'plan_name',
                       'description' => 'desc',
                       'max_storage_mb' => 5,
-                  }
+                  },
+                {
+                  'id' => 'new-plan-guid',
+                  'name' => 'plan_name',
+                  'description' => 'desc',
+                  'max_storage_mb' => 12,
+                }
               ]
           }
       ]
@@ -121,6 +127,90 @@ describe V2::ServiceInstancesController do
       it 'does not attempt to create a service instance' do
         expect(ServiceInstanceManager).not_to receive(:create)
         make_request
+      end
+    end
+  end
+
+  describe '#set_plan' do
+    let(:plan_id) { 'new-plan-guid' }
+    let(:make_request) { patch :set_plan, id: instance_id, plan_id: plan_id }
+
+    before do
+      ServiceInstanceManager.stub(:set_plan)
+
+      request_body = {plan_id: 'new-plan-guid'}.to_json
+      request.env['RAW_POST_DATA'] = request_body
+    end
+
+    it_behaves_like 'a controller action that requires basic auth'
+
+    it_behaves_like 'a controller action that logs its request and response headers and body'
+
+    context 'when the service instance exists' do
+      before do
+        ServiceInstance.create(guid: instance_id, plan_guid: 'some-plan-guid')
+      end
+
+      it 'returns a 200' do
+        make_request
+
+        expect(response.status).to eq(200)
+        body = JSON.parse(response.body)
+        expect(body).to eq({})
+      end
+
+      it 'tells the service instance manager to change the plan of the instance' do
+        expect(ServiceInstanceManager).to receive(:set_plan).with({
+              guid: instance_id,
+            plan_guid: 'new-plan-guid'
+        })
+
+        make_request
+      end
+    end
+
+    context 'when the service instance does not exist' do
+      before do
+        allow(ServiceInstanceManager).to receive(:set_plan).with({
+          guid: instance_id,
+          plan_guid: 'new-plan-guid'
+        }).and_raise(ServiceInstanceManager::ServiceInstanceNotFound)
+      end
+
+      it 'returns a 404' do
+        make_request
+
+        expect(response.status).to eq(404)
+        expect(response.body).to eq '{"description":"Service instance not found"}'
+      end
+    end
+
+    context 'when the service plan does not exist' do
+      before do
+        allow(ServiceInstanceManager).to receive(:set_plan).with({
+          guid: instance_id,
+          plan_guid: 'new-plan-guid'
+        }).and_raise(ServiceInstanceManager::ServicePlanNotFound)
+      end
+
+      it 'returns a 400' do
+        make_request
+
+        expect(response.status).to eq(400)
+        expect(response.body).to eq '{"description":"Service plan not found"}'
+      end
+    end
+
+    context 'when the service plan cannot be updated' do
+      before do
+        allow(ServiceInstanceManager).to receive(:set_plan).and_raise(ServiceInstanceManager::InvalidServicePlanUpdate.new('cannot downgrade'))
+      end
+
+      it 'returns a 422 and forwards the error message' do
+        make_request
+
+        expect(response.status).to eq 422
+        expect(response.body).to eq '{"description":"cannot downgrade"}'
       end
     end
   end

@@ -26,6 +26,7 @@ describe ServiceBinding do
 
   after do
     begin
+      allow(connection).to receive(:execute).and_call_original
       connection.execute("DROP USER #{username}")
     rescue ActiveRecord::StatementInvalid => e
       raise unless e.message =~ /DROP USER failed/
@@ -76,6 +77,49 @@ describe ServiceBinding do
         binding = ServiceBinding.find_by_id_and_service_instance_guid(id, instance_guid)
         expect(binding).to be_nil
       end
+    end
+  end
+
+  describe '.update_all_max_user_connections' do
+    let(:users) { ["fake-user"] }
+    let(:plan) do
+      Plan.new(
+        {
+          'id' => plan_guid,
+          'max_user_connections' => 45,
+          'name' => 'fake-plan-name',
+          'description' => 'some-silly-description',
+        }
+      )
+    end
+
+    before do
+      allow(Catalog).to receive(:plans).and_return([plan])
+    end
+
+    it 'updates max user connections for all plans' do
+      expect(Catalog).to receive(:plans)
+      expect(connection).to receive(:select_values).
+        with(
+<<-SQL
+SELECT mysql.user.user
+FROM service_instances
+JOIN mysql.db ON service_instances.db_name=mysql.db.Db
+JOIN mysql.user ON mysql.user.User=mysql.db.User
+WHERE plan_guid='#{plan.id}' AND mysql.user.user NOT LIKE 'root'
+SQL
+      ).and_return(users)
+
+      expect(connection).to receive(:execute).
+          with(
+<<-SQL
+GRANT USAGE ON *.* TO '#{users[0]}'@'%'
+WITH MAX_USER_CONNECTIONS #{plan.max_user_connections}
+SQL
+      )
+      expect(connection).to receive(:execute).with("FLUSH PRIVILEGES")
+
+      ServiceBinding.update_all_max_user_connections
     end
   end
 
@@ -215,7 +259,7 @@ describe ServiceBinding do
     let(:host) { connection_config.fetch('host') }
     let(:port) { connection_config.fetch('port') }
     let(:uri) { "mysql://random:random@#{host}:#{port}/#{database}?reconnect=true" }
-    let(:jdbc_url) { "jdbc:mysql://random:random@#{host}:#{port}/#{database}" }
+    let(:jdbc_url) { "jdbc:mysql://#{host}:#{port}/#{database}?user=random&password=random" }
 
     before { binding.save }
 

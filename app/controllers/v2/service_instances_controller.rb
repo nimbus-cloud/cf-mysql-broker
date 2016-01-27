@@ -20,6 +20,28 @@ class V2::ServiceInstancesController < V2::BaseController
     end
   end
 
+  def set_plan
+    instance_guid = params.fetch(:id)
+    plan_guid = params.fetch(:plan_id)
+
+    begin
+      ServiceInstanceManager.set_plan(guid: instance_guid, plan_guid: plan_guid)
+      status = 200
+      body = {}
+    rescue ServiceInstanceManager::ServiceInstanceNotFound
+      status = 404
+      body = { description: 'Service instance not found' }
+    rescue ServiceInstanceManager::ServicePlanNotFound
+      status = 400
+      body = { description: 'Service plan not found' }
+    rescue ServiceInstanceManager::InvalidServicePlanUpdate => e
+      status = 422
+      body = { description: e.message }
+    end
+
+    render status: status, json: body
+  end
+
   def destroy
     instance_guid = params.fetch(:id)
     begin
